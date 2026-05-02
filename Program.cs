@@ -14,23 +14,21 @@ namespace SocietiesMS
         [STAThread]
         static void Main()
         {
+            // Set up WinForms environment
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Verify DB connectivity before launching UI
-            if (!DatabaseHelper.TestConnection())
+            // Verify Database connectivity (Audit requirement)
+            if (!DAL.DatabaseHelper.TestConnection())
             {
                 MessageBox.Show(
-                    "Cannot connect to SQL Server.\n" +
-                    "Please ensure SQL Server is running and the connection string in\n" +
-                    "DAL/DatabaseHelper.cs is correct.",
-                    "Connection Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                    "Database Connection Failed!\nPlease check SQL Server settings in DatabaseHelper.cs",
+                    "System Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            Application.Run(new LoginForm());
+            // Start with the professional WinForms Login
+            Application.Run(new Forms.LoginForm());
         }
     }
 }

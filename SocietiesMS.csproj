@@ -40,6 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\UIStyle.cs" />
+    <Compile Include="Forms\LoginForm.cs" />
+    <Compile Include="Forms\AdminDashboard.cs" />
+    <Compile Include="Forms\StudentDashboard.cs" />
+    <Compile Include="Forms\SocietyDashboard.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="DAL\DatabaseHelper.cs" />
     <Compile Include="DAL\UserDAL.cs" />
@@ -47,8 +52,8 @@
     <Compile Include="DAL\EventDAL.cs" />
     <Compile Include="DAL\TaskDAL.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Forms\LoginForm.cs" />
-    <Compile Include="Forms\RegisterForm.cs" />
+    <Compile Include="Forms\UIStyle.cs" />
+    <Compile Include="Forms\AdminDashboard.cs" />
     <Compile Include="Forms\StudentDashboard.cs" />
     <Compile Include="Forms\SocietyDashboard.cs" />
     <Compile Include="Forms\AdminDashboard.cs" />

@@ -1,6 +1,8 @@
 // File: Forms/StudentDashboard.cs
 using System;
 using System.Data;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using SocietiesMS.DAL;
 using SocietiesMS.Models;
@@ -14,6 +16,9 @@ namespace SocietiesMS.Forms
     {
         private readonly User _user;
 
+        private Panel pnlHeader;
+        private PictureBox picLogo;
+        private Label lblHeaderTitle, lblWelcome;
         private TabControl  tabControl;
         private TabPage     tabSocieties, tabEvents, tabMemberships, tabTickets;
 
@@ -33,8 +38,6 @@ namespace SocietiesMS.Forms
         private DataGridView dgvTickets;
         private Button       btnRefreshTickets;
 
-        private Label lblWelcome;
-
         public StudentDashboard(User user)
         {
             _user = user;
@@ -45,81 +48,124 @@ namespace SocietiesMS.Forms
         private void InitializeComponents()
         {
             this.Text = $"Student Dashboard – {_user.FullName}";
-            this.Size = new System.Drawing.Size(850, 600);
+            this.Size = new Size(1000, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = UIStyle.LightGray;
 
-            lblWelcome = new Label
-            {
-                Text = $"Welcome, {_user.FullName}  |  Role: {_user.Role}",
-                Font = new System.Drawing.Font("Arial", 11, System.Drawing.FontStyle.Bold),
-                Location = new System.Drawing.Point(10, 10),
-                Size = new System.Drawing.Size(600, 28)
+            // Header
+            pnlHeader = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = UIStyle.Navy };
+            
+            picLogo = new PictureBox { Size = new Size(60, 60), Location = new Point(15, 10), SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.Transparent };
+            string logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fast_Logo.png");
+            if (!File.Exists(logoPath)) logoPath = Path.Combine(Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName, "fast_Logo.png");
+            if (File.Exists(logoPath)) picLogo.Image = Image.FromFile(logoPath);
+
+            lblHeaderTitle = new Label { Text = "FAST UNIVERSITY", Font = UIStyle.TitleFont, ForeColor = UIStyle.White, Location = new Point(85, 12), Size = new Size(300, 35), TextAlign = ContentAlignment.MiddleLeft };
+            lblWelcome = new Label { Text = $"Welcome, {_user.FullName} (Student)", Font = UIStyle.SmallFont, ForeColor = UIStyle.LightBlue, Location = new Point(85, 47), Size = new Size(500, 25), TextAlign = ContentAlignment.MiddleLeft };
+            
+            pnlHeader.Controls.AddRange(new Control[] { picLogo, lblHeaderTitle, lblWelcome });
+
+            tabControl = new TabControl { 
+                Dock = DockStyle.Fill, 
+                Font = UIStyle.TextFont,
+                Padding = new Point(20, 10)
             };
 
-            tabControl = new TabControl { Location = new System.Drawing.Point(10, 45),
-                                          Size = new System.Drawing.Size(815, 510) };
-
             // ---- Societies Tab ----
-            tabSocieties  = new TabPage("Browse Societies");
+            tabSocieties  = new TabPage("Browse Societies") { BackColor = UIStyle.White };
             dgvSocieties  = MakeGrid();
-            btnApply            = new Button { Text = "Apply for Membership", Location = new System.Drawing.Point(5, 5),   Size = new System.Drawing.Size(160, 28) };
-            btnRefreshSocieties = new Button { Text = "Refresh",              Location = new System.Drawing.Point(175, 5), Size = new System.Drawing.Size(80, 28) };
-            dgvSocieties.Location = new System.Drawing.Point(5, 40);
-            dgvSocieties.Size     = new System.Drawing.Size(790, 420);
+            btnApply            = CreateStyledButton("Apply for Membership", new Point(20, 15), 180);
+            btnRefreshSocieties = CreateStyledButton("Refresh", new Point(210, 15), 80);
+            dgvSocieties.Location = new Point(20, 60);
+            dgvSocieties.Size     = new Size(940, 480);
             btnApply.Click            += BtnApply_Click;
             btnRefreshSocieties.Click += (s, e) => LoadSocieties();
             tabSocieties.Controls.AddRange(new Control[] { btnApply, btnRefreshSocieties, dgvSocieties });
 
             // ---- Events Tab ----
-            tabEvents     = new TabPage("Upcoming Events");
+            tabEvents     = new TabPage("Upcoming Events") { BackColor = UIStyle.White };
             dgvEvents     = MakeGrid();
-            btnRegisterEvent  = new Button { Text = "Register for Event", Location = new System.Drawing.Point(5,   5), Size = new System.Drawing.Size(140, 28) };
-            btnRefreshEvents  = new Button { Text = "Refresh",            Location = new System.Drawing.Point(155, 5), Size = new System.Drawing.Size(80,  28) };
-            dgvEvents.Location    = new System.Drawing.Point(5, 40);
-            dgvEvents.Size        = new System.Drawing.Size(790, 420);
+            btnRegisterEvent  = CreateStyledButton("Register for Event", new Point(20, 15), 160);
+            btnRefreshEvents  = CreateStyledButton("Refresh", new Point(190, 15), 80);
+            dgvEvents.Location    = new Point(20, 60);
+            dgvEvents.Size        = new Size(940, 480);
             btnRegisterEvent.Click += BtnRegisterEvent_Click;
             btnRefreshEvents.Click += (s, e) => LoadEvents();
             tabEvents.Controls.AddRange(new Control[] { btnRegisterEvent, btnRefreshEvents, dgvEvents });
 
             // ---- Memberships Tab ----
-            tabMemberships    = new TabPage("My Memberships");
+            tabMemberships    = new TabPage("My Memberships") { BackColor = UIStyle.White };
             dgvMemberships    = MakeGrid();
-            btnRefreshMemberships = new Button { Text = "Refresh", Location = new System.Drawing.Point(5, 5), Size = new System.Drawing.Size(80, 28) };
-            dgvMemberships.Location = new System.Drawing.Point(5, 40);
-            dgvMemberships.Size     = new System.Drawing.Size(790, 420);
+            btnRefreshMemberships = CreateStyledButton("Refresh", new Point(20, 15), 80);
+            dgvMemberships.Location = new Point(20, 60);
+            dgvMemberships.Size     = new Size(940, 480);
             btnRefreshMemberships.Click += (s, e) => LoadMemberships();
             tabMemberships.Controls.AddRange(new Control[] { btnRefreshMemberships, dgvMemberships });
 
             // ---- Tickets Tab ----
-            tabTickets    = new TabPage("My Tickets");
+            tabTickets    = new TabPage("My Tickets") { BackColor = UIStyle.White };
             dgvTickets    = MakeGrid();
-            btnRefreshTickets = new Button { Text = "Refresh", Location = new System.Drawing.Point(5, 5), Size = new System.Drawing.Size(80, 28) };
-            dgvTickets.Location = new System.Drawing.Point(5, 40);
-            dgvTickets.Size     = new System.Drawing.Size(790, 420);
+            btnRefreshTickets = CreateStyledButton("Refresh", new Point(20, 15), 80);
+            dgvTickets.Location = new Point(20, 60);
+            dgvTickets.Size     = new Size(940, 480);
             btnRefreshTickets.Click += (s, e) => LoadTickets();
             tabTickets.Controls.AddRange(new Control[] { btnRefreshTickets, dgvTickets });
 
-            tabControl.TabPages.AddRange(new TabPage[]
-                { tabSocieties, tabEvents, tabMemberships, tabTickets });
+            tabControl.TabPages.AddRange(new TabPage[] { tabSocieties, tabEvents, tabMemberships, tabTickets });
 
-            this.Controls.AddRange(new Control[] { lblWelcome, tabControl });
+            this.Controls.Add(tabControl);
+            this.Controls.Add(pnlHeader);
         }
 
-        // ----------------------------------------------------------------
-        // Helper – create a standard read-only DataGridView
-        // CC = 1
-        // ----------------------------------------------------------------
+        private Button CreateStyledButton(string text, Point location, int width = 100)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                Location = location,
+                Size = new Size(width, 35),
+                BackColor = UIStyle.Blue,
+                ForeColor = UIStyle.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = UIStyle.SmallFont,
+                Cursor = Cursors.Hand
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            return btn;
+        }
+
         private DataGridView MakeGrid()
         {
-            return new DataGridView
+            var grid = new DataGridView
             {
-                ReadOnly         = true,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                SelectionMode    = DataGridViewSelectionMode.FullRowSelect,
-                AllowUserToAddRows    = false,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
-                BackgroundColor  = System.Drawing.Color.White
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false,
+                BackgroundColor = UIStyle.White,
+                BorderStyle = BorderStyle.Fixed3D,
+                GridColor = UIStyle.Border,
+                EnableHeadersVisualStyles = false,
+                ColumnHeadersHeight = 35,
+                RowTemplate = { Height = 30 }
             };
+            
+            // Fix header alignment
+            grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            grid.ColumnHeadersDefaultCellStyle.BackColor = UIStyle.Navy;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = UIStyle.White;
+            grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            
+            // Fix cell alignment
+            grid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            grid.DefaultCellStyle.Font = new Font("Segoe UI", 9);
+            grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            
+            return grid;
         }
 
         // ----------------------------------------------------------------

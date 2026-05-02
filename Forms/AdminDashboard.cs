@@ -1,6 +1,8 @@
 // File: Forms/AdminDashboard.cs
 using System;
 using System.Data;
+using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using SocietiesMS.DAL;
 using SocietiesMS.Models;
@@ -14,6 +16,9 @@ namespace SocietiesMS.Forms
     {
         private readonly User _user;
 
+        private Panel pnlHeader, pnlSidebar, pnlContent;
+        private PictureBox picLogo;
+        private Label lblHeaderTitle, lblWelcome;
         private TabControl tabControl;
         private TabPage    tabUsers, tabSocieties, tabEvents, tabReports;
 
@@ -33,8 +38,6 @@ namespace SocietiesMS.Forms
         private DataGridView dgvReport;
         private Button       btnGenReport;
 
-        private Label lblWelcome;
-
         public AdminDashboard(User user)
         {
             _user = user;
@@ -45,71 +48,132 @@ namespace SocietiesMS.Forms
         private void InitializeComponents()
         {
             this.Text = $"Admin Dashboard – {_user.FullName}";
-            this.Size = new System.Drawing.Size(950, 640);
+            this.Size = new Size(1100, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackColor = UIStyle.LightGray;
 
-            lblWelcome = new Label
-            {
-                Text = $"Administrator: {_user.FullName}",
-                Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold),
-                Location = new System.Drawing.Point(10, 10),
-                Size = new System.Drawing.Size(400, 28)
+            // Header
+            pnlHeader = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = UIStyle.Navy };
+            
+            picLogo = new PictureBox { Size = new Size(60, 60), Location = new Point(15, 10), SizeMode = PictureBoxSizeMode.Zoom, BackColor = Color.Transparent };
+            string logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fast_Logo.png");
+            if (!File.Exists(logoPath)) logoPath = Path.Combine(Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName, "fast_Logo.png");
+            if (File.Exists(logoPath)) picLogo.Image = Image.FromFile(logoPath);
+
+            lblHeaderTitle = new Label { Text = "FAST UNIVERSITY", Font = UIStyle.TitleFont, ForeColor = UIStyle.White, Location = new Point(85, 12), Size = new Size(300, 35), TextAlign = ContentAlignment.MiddleLeft };
+            lblWelcome = new Label { Text = $"Welcome, {_user.FullName} (Administrator)", Font = UIStyle.SmallFont, ForeColor = UIStyle.LightBlue, Location = new Point(85, 47), Size = new Size(500, 25), TextAlign = ContentAlignment.MiddleLeft };
+            
+            pnlHeader.Controls.AddRange(new Control[] { picLogo, lblHeaderTitle, lblWelcome });
+
+            // Sidebar (Optional, but let's use TabControl for simplicity with better styling)
+            tabControl = new TabControl { 
+                Dock = DockStyle.Fill, 
+                Font = UIStyle.TextFont,
+                Padding = new Point(20, 10)
             };
 
-            tabControl = new TabControl { Location = new System.Drawing.Point(10, 45),
-                                          Size = new System.Drawing.Size(920, 560) };
+            // Apply style to TabControl (custom painting would be better but simple first)
 
             // ---- Users ----
-            tabUsers    = new TabPage("Users");
-            dgvUsers    = MakeGrid(); dgvUsers.Location = new System.Drawing.Point(5, 40); dgvUsers.Size = new System.Drawing.Size(895, 475);
-            btnActivate   = new Button { Text = "Activate",     Location = new System.Drawing.Point(5,   5), Size = new System.Drawing.Size(90,  28) };
-            btnDeactivate = new Button { Text = "Deactivate",   Location = new System.Drawing.Point(105, 5), Size = new System.Drawing.Size(90,  28) };
-            btnChangeRole = new Button { Text = "Change Role",  Location = new System.Drawing.Point(205, 5), Size = new System.Drawing.Size(100, 28) };
-            btnActivate.Click   += BtnActivate_Click;
+            tabUsers = new TabPage("Manage Users") { BackColor = UIStyle.White };
+            dgvUsers = MakeGrid(); dgvUsers.Location = new Point(20, 60); dgvUsers.Size = new Size(1020, 500);
+            
+            btnActivate = CreateStyledButton("Activate", new Point(20, 15));
+            btnDeactivate = CreateStyledButton("Deactivate", new Point(130, 15));
+            btnChangeRole = CreateStyledButton("Change Role", new Point(240, 15));
+            
+            btnActivate.Click += BtnActivate_Click;
             btnDeactivate.Click += BtnDeactivate_Click;
             btnChangeRole.Click += BtnChangeRole_Click;
             tabUsers.Controls.AddRange(new Control[] { btnActivate, btnDeactivate, btnChangeRole, dgvUsers });
 
             // ---- Societies ----
-            tabSocieties     = new TabPage("Societies");
-            dgvSocieties     = MakeGrid(); dgvSocieties.Location = new System.Drawing.Point(5, 40); dgvSocieties.Size = new System.Drawing.Size(895, 475);
-            btnCreateSociety  = new Button { Text = "Create Society",  Location = new System.Drawing.Point(5,   5), Size = new System.Drawing.Size(130, 28) };
-            btnApproveSociety = new Button { Text = "Approve",         Location = new System.Drawing.Point(145, 5), Size = new System.Drawing.Size(90,  28) };
-            btnSuspendSociety = new Button { Text = "Suspend",         Location = new System.Drawing.Point(245, 5), Size = new System.Drawing.Size(90,  28) };
-            btnCreateSociety.Click  += BtnCreateSociety_Click;
+            tabSocieties = new TabPage("Societies") { BackColor = UIStyle.White };
+            dgvSocieties = MakeGrid(); dgvSocieties.Location = new Point(20, 60); dgvSocieties.Size = new Size(1020, 500);
+            
+            btnCreateSociety = CreateStyledButton("Create Society", new Point(20, 15), 140);
+            btnApproveSociety = CreateStyledButton("Approve", new Point(170, 15));
+            btnSuspendSociety = CreateStyledButton("Suspend", new Point(280, 15));
+            
+            btnCreateSociety.Click += BtnCreateSociety_Click;
             btnApproveSociety.Click += BtnApproveSociety_Click;
             btnSuspendSociety.Click += BtnSuspendSociety_Click;
             tabSocieties.Controls.AddRange(new Control[] { btnCreateSociety, btnApproveSociety, btnSuspendSociety, dgvSocieties });
 
             // ---- Events ----
-            tabEvents        = new TabPage("Pending Events");
-            dgvPendingEvents = MakeGrid(); dgvPendingEvents.Location = new System.Drawing.Point(5, 40); dgvPendingEvents.Size = new System.Drawing.Size(895, 475);
-            btnApproveEvent  = new Button { Text = "Approve Event", Location = new System.Drawing.Point(5,   5), Size = new System.Drawing.Size(120, 28) };
-            btnRejectEvent   = new Button { Text = "Reject Event",  Location = new System.Drawing.Point(135, 5), Size = new System.Drawing.Size(120, 28) };
+            tabEvents = new TabPage("Pending Events") { BackColor = UIStyle.White };
+            dgvPendingEvents = MakeGrid(); dgvPendingEvents.Location = new Point(20, 60); dgvPendingEvents.Size = new Size(1020, 500);
+            
+            btnApproveEvent = CreateStyledButton("Approve Event", new Point(20, 15), 130);
+            btnRejectEvent = CreateStyledButton("Reject Event", new Point(160, 15), 130);
+            
             btnApproveEvent.Click += BtnApproveEvent_Click;
-            btnRejectEvent.Click  += BtnRejectEvent_Click;
+            btnRejectEvent.Click += BtnRejectEvent_Click;
             tabEvents.Controls.AddRange(new Control[] { btnApproveEvent, btnRejectEvent, dgvPendingEvents });
 
             // ---- Reports ----
-            tabReports  = new TabPage("University Report");
-            dgvReport   = MakeGrid(); dgvReport.Location = new System.Drawing.Point(5, 40); dgvReport.Size = new System.Drawing.Size(895, 475);
-            btnGenReport = new Button { Text = "Generate University Report", Location = new System.Drawing.Point(5, 5), Size = new System.Drawing.Size(200, 28) };
+            tabReports = new TabPage("Reports") { BackColor = UIStyle.White };
+            dgvReport = MakeGrid(); dgvReport.Location = new Point(20, 60); dgvReport.Size = new Size(1020, 500);
+            
+            btnGenReport = CreateStyledButton("Generate University Report", new Point(20, 15), 250);
             btnGenReport.Click += (s, e) => { dgvReport.DataSource = TaskDAL.GenerateUniversityReport(); };
             tabReports.Controls.AddRange(new Control[] { btnGenReport, dgvReport });
 
             tabControl.TabPages.AddRange(new TabPage[] { tabUsers, tabSocieties, tabEvents, tabReports });
-            this.Controls.AddRange(new Control[] { lblWelcome, tabControl });
+
+            this.Controls.Add(tabControl);
+            this.Controls.Add(pnlHeader);
+        }
+
+        private Button CreateStyledButton(string text, Point location, int width = 100)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                Location = location,
+                Size = new Size(width, 35),
+                BackColor = UIStyle.Blue,
+                ForeColor = UIStyle.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = UIStyle.SmallFont,
+                Cursor = Cursors.Hand
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            return btn;
         }
 
         private DataGridView MakeGrid()
         {
-            return new DataGridView
+            var grid = new DataGridView
             {
-                ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                RowHeadersVisible = false,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AllowUserToAddRows = false, AllowUserToDeleteRows = false,
-                BackgroundColor = System.Drawing.Color.White
+                MultiSelect = false,
+                BackgroundColor = UIStyle.White,
+                BorderStyle = BorderStyle.Fixed3D,
+                GridColor = UIStyle.Border,
+                EnableHeadersVisualStyles = false,
+                ColumnHeadersHeight = 35,
+                RowTemplate = { Height = 30 }
             };
+            
+            // Fix header alignment
+            grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+            grid.ColumnHeadersDefaultCellStyle.BackColor = UIStyle.Navy;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = UIStyle.White;
+            grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            
+            // Fix cell alignment
+            grid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            grid.DefaultCellStyle.Font = new Font("Segoe UI", 9);
+            grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            
+            return grid;
         }
 
         private void LoadAllData()

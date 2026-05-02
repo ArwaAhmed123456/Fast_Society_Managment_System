@@ -1,0 +1,6 @@
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\bin\Debug\SocietiesMS.exe
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\bin\Debug\SocietiesMS.pdb
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\obj\Debug\SocietiesMS.csproj.AssemblyReference.cache
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\obj\Debug\SocietiesMS.csproj.CoreCompileInputs.cache
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\obj\Debug\SocietiesMS.exe
+C:\Users\uk354\Downloads\SocietiesMS_Project\SocietiesMS\obj\Debug\SocietiesMS.pdb

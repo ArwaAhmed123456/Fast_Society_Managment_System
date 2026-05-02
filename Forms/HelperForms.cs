@@ -164,7 +164,7 @@ namespace SocietiesMS.Forms
 
         // ----------------------------------------------------------------
         // BtnCreate_Click
-        // CC = 3 (2 validation branches + success/fail)
+        // CC = 5 (UserID check + 2 validation branches + success/fail)
         // ----------------------------------------------------------------
         private void BtnCreate_Click(object sender, EventArgs e)
         {
@@ -180,9 +180,24 @@ namespace SocietiesMS.Forms
                 lblStatus.Text = "Enter a valid numeric User ID.";
                 return;
             }
-            bool ok = SocietyDAL.CreateSociety(txtName.Text.Trim(), txtDesc.Text.Trim(), headID);
-            if (ok) { MessageBox.Show("Society created (Pending approval)."); this.Close(); }
-            else     lblStatus.Text = "Society name already exists.";
+
+            // Audit Check: Verify if UserID exists before attempting insert (Avoid FK Exception)
+            if (!UserDAL.UserExists(headID))
+            {
+                lblStatus.Text = "User ID does not exist. Please check the Users table.";
+                return;
+            }
+
+            try 
+            {
+                bool ok = SocietyDAL.CreateSociety(txtName.Text.Trim(), txtDesc.Text.Trim(), headID);
+                if (ok) { MessageBox.Show("Society created (Pending approval)."); this.Close(); }
+                else     lblStatus.Text = "Society name already exists.";
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Database Error: " + ex.Message;
+            }
         }
     }
 }
@@ -257,7 +272,7 @@ namespace SocietiesMS.Forms
 
         // ----------------------------------------------------------------
         // BtnAssign_Click – validate and assign
-        // CC = 4
+        // CC = 6 (UserID check + logic)
         // ----------------------------------------------------------------
         private void BtnAssign_Click(object sender, EventArgs e)
         {
@@ -268,16 +283,32 @@ namespace SocietiesMS.Forms
                 lblStatus.Text = "Enter a valid numeric User ID.";
                 return;
             }
+
+            // Audit Check: Prevent FK crash
+            if (!UserDAL.UserExists(toUID))
+            {
+                lblStatus.Text = "Assigned User ID does not exist.";
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(txtTitle.Text))
             {
                 lblStatus.Text = "Task title is required.";
                 return;
             }
             DateTime? due = chkNoDue.Checked ? (DateTime?)null : dtpDue.Value;
-            bool ok = TaskDAL.AssignTask(_societyID, toUID, _assignedByUserID,
-                                         txtTitle.Text.Trim(), txtDesc.Text.Trim(), due);
-            if (ok) { MessageBox.Show("Task assigned successfully."); this.Close(); }
-            else     lblStatus.Text = "Failed. Check that due date is not in the past.";
+            
+            try 
+            {
+                bool ok = TaskDAL.AssignTask(_societyID, toUID, _assignedByUserID,
+                                             txtTitle.Text.Trim(), txtDesc.Text.Trim(), due);
+                if (ok) { MessageBox.Show("Task assigned successfully."); this.Close(); }
+                else     lblStatus.Text = "Failed. Check that due date is not in the past.";
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Database Error: " + ex.Message;
+            }
         }
     }
 }

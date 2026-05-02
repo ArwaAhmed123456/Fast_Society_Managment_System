@@ -1,4 +1,5 @@
 // File: DAL/SocietyDAL.cs
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -39,6 +40,18 @@ namespace SocietiesMS.DAL
         }
 
         // ----------------------------------------------------------------
+        // GetSocietyIDByHead – find society ID for a given head user
+        // CC = 2
+        // ----------------------------------------------------------------
+        public static int GetSocietyIDByHead(int userID)
+        {
+            string sql = "SELECT SocietyID FROM Societies WHERE HeadUserID=@UID AND Status='Active'";
+            var prms = new SqlParameter[] { new SqlParameter("@UID", userID) };
+            object result = DatabaseHelper.ExecuteScalar(sql, prms);
+            return (result == null || result == DBNull.Value) ? -1 : Convert.ToInt32(result);
+        }
+
+        // ----------------------------------------------------------------
         // CreateSociety – admin creates society
         // CC = 1
         // ----------------------------------------------------------------
@@ -56,7 +69,7 @@ namespace SocietiesMS.DAL
 
         // ----------------------------------------------------------------
         // UpdateSocietyStatus – admin approve/suspend/delete
-        // CC = 2 (valid status check)
+        // CC = 2
         // ----------------------------------------------------------------
         public static bool UpdateSocietyStatus(int societyID, string status)
         {
@@ -73,7 +86,7 @@ namespace SocietiesMS.DAL
 
         // ----------------------------------------------------------------
         // ApplyForMembership – student applies
-        // CC = 2 (already applied check)
+        // CC = 2
         // ----------------------------------------------------------------
         public static bool ApplyForMembership(int userID, int societyID)
         {

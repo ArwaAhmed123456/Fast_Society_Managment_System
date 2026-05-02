@@ -16,7 +16,7 @@ namespace SocietiesMS.DAL
     {
         // ----------------------------------------------------------------
         // HashPassword – SHA-256 one-way hash
-        // CC = 1 (no branches)
+        // CC = 1
         // ----------------------------------------------------------------
         public static string HashPassword(string plainText)
         {
@@ -32,7 +32,7 @@ namespace SocietiesMS.DAL
 
         // ----------------------------------------------------------------
         // RegisterUser – creates a new student account
-        // CC = 2 (one branch: duplicate email)
+        // CC = 2
         // ----------------------------------------------------------------
         public static bool RegisterUser(string fullName, string email, string password)
         {
@@ -53,7 +53,7 @@ namespace SocietiesMS.DAL
 
         // ----------------------------------------------------------------
         // Login – validates credentials and returns User object
-        // CC = 3 (null check + role check)
+        // CC = 3
         // ----------------------------------------------------------------
         public static User Login(string email, string password)
         {
@@ -78,6 +78,18 @@ namespace SocietiesMS.DAL
                 IsActive  = (bool)row["IsActive"],
                 CreatedAt = (DateTime)row["CreatedAt"]
             };
+        }
+
+        // ----------------------------------------------------------------
+        // UserExists – Audit check for FK constraints
+        // CC = 1
+        // ----------------------------------------------------------------
+        public static bool UserExists(int userID)
+        {
+            string sql = "SELECT COUNT(1) FROM Users WHERE UserID=@UID";
+            var prms = new SqlParameter[] { new SqlParameter("@UID", userID) };
+            object result = DatabaseHelper.ExecuteScalar(sql, prms);
+            return Convert.ToInt32(result) > 0;
         }
 
         // ----------------------------------------------------------------
