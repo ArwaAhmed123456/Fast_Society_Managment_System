@@ -1,0 +1,5 @@
+[*.cs]
+# Enable Cyclomatic Complexity analysis
+dotnet_diagnostic.CA1502.severity = warning
+# Set the threshold (default is 25, let's set it to 10 for better code)
+dotnet_code_quality.CA1502.threshold = 10
