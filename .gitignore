@@ -1,0 +1,36 @@
+# Build results
+[Dd]/
+[Dd]/*
+[Dd]/*
+[Dd]/*/
+[Dd]
+
+# User specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]*/
+[Dd]/*
+[Dd]
+
+# NuGet Packages
+*.nupkg
+packages/
+
+# Visual Studio files
+.vs/
+bin/
+obj/
+
+# Resharper cache files
+_ReSharper*/
+
+# Chosen files to exclude from git
+FAULT_INJECTION_ANALYSIS.md
+project_analysis_report.md
+*.md
+!README.md
